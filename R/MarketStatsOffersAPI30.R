@@ -57,7 +57,6 @@ for (i in 0:divnumber)
   offset <- 1
   row_pos <- offset
   last_query <- FALSE
-  packageStartupMessage("Processing", appendLF = F)
   while (last_query == FALSE) {
     date_from1 <- format(date_from1, format="%d-%m-%Y")
     date_till1 <- format(date_till1, format="%d-%m-%Y")
@@ -86,8 +85,7 @@ if (rawData$offersStats$totalOffersCount > 0)
    result <- rbind(result,unlist(dataset[[rows_i]]),stringsAsFactors = F)
    }
     }
-    packageStartupMessage(ch, appendLF = T)
-   
+
     
      if (rawData$offersStats$totalOffersCount <= row_pos*limit) {
       last_query <- TRUE

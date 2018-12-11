@@ -71,7 +71,6 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
     limit <- 1000
     offset <- 1
     last_query <- FALSE
-    packageStartupMessage("Processing", appendLF = F)
     while (last_query == FALSE) {
       date1 <- as.Date(date1)
       date2 <- as.Date(date2)
