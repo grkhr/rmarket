@@ -6,7 +6,7 @@
 #' @param client_id Your API token, see \code{\link{https://tech.yandex.ru/market/partner/doc/dg/concepts/authorization-docpage/}}
 #' @param shop_id Your shop ID, see \code{\link{https://partner.market.yandex.ru/?list=yes}}
 #' @param token Your API token, see \code{\link{https://tech.yandex.ru/market/partner/doc/dg/concepts/authorization-docpage/}}
-#' @param feedId You can check it in Pricelabs
+#' @param feedId See \code{\link{https://pricelabs.yandex.ru/stats/feeds}} 
 #' @param DBD Adding a date column, default to FALSE, use it only for 1-day stats
 #' @export
 #' @importFrom httr POST
