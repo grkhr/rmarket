@@ -45,6 +45,11 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", date2 = "today", client
    if (numdays == 0) divnumber = 0 else  divnumber <- (numdays-1) %/% 29
    if (numdays %% 29 == 0) {divremainder <- 0} else {divremainder <- (numdays) %% 29}
   
+for (iii in 0:numdays)
+{
+  datefrom1 <- date1+iii
+  date_till1 <- datefrom1
+  
 for (i in 0:divnumber)
 {
    if (i == divnumber) {divtill <- 0} else {divtill <- 1}
@@ -67,7 +72,6 @@ for (i in 0:divnumber)
     query <- gsub(":", "%3a", query)
     query <- paste0("https://api.partner.market.yandex.ru/v2/campaigns/", shop_id, "/stats/offers.json?", 
                     query)
-   # query <- paste0("https://api.partner.market.yandex.ru/v2/campaigns/21472065/feeds.json?", "&oauth_token=", token, "&oauth_client_id=", client_id)
     answer <- GET(query)
     rawData <- content(answer, "parsed", "application/json")
     
@@ -82,7 +86,7 @@ if (rawData$offersStats$totalOffersCount > 0)
 
   #  rows <- lapply(rawData$offersStats$offerStats, function(x) return(x))
    for (rows_i in 1:length(dataset)) {
-   result <- rbind(result,unlist(dataset[[rows_i]]),stringsAsFactors = F)
+   result <- rbind(result,c(unlist(dataset[[rows_i]]),date1),stringsAsFactors = F)
    }
     }
 
@@ -99,9 +103,10 @@ if (rawData$offersStats$totalOffersCount > 0)
     
 }
 }
+}
   
    column_names <- c(unlist(lapply(c(names(dataset[[1]])),
-                                              function(x) return(x))))
+                                              function(x) return(x))),"date")
    colnames(result) <- column_names
    
    if (DBD == TRUE) result$date <- date1
