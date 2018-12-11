@@ -45,10 +45,6 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", date2 = "today", client
    if (numdays == 0) divnumber = 0 else  divnumber <- (numdays-1) %/% 29
    if (numdays %% 29 == 0) {divremainder <- 0} else {divremainder <- (numdays) %% 29}
   
-for (iii in 0:numdays)
-{
-  datefrom1 <- date1+iii
-  date_till1 <- datefrom1
   
 for (i in 0:divnumber)
 {
@@ -103,7 +99,7 @@ if (rawData$offersStats$totalOffersCount > 0)
     
 }
 }
-}
+
   
    column_names <- c(unlist(lapply(c(names(dataset[[1]])),
                                               function(x) return(x))),"date")
