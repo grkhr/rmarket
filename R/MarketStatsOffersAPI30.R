@@ -102,7 +102,7 @@ if (rawData$offersStats$totalOffersCount > 0)
 
   
    column_names <- c(unlist(lapply(c(names(dataset[[1]])),
-                                              function(x) return(x))),"date")
+                                              function(x) return(x))))
    colnames(result) <- column_names
    
    if (DBD == TRUE) {result$date <- as.character(date1)}
