@@ -82,7 +82,7 @@ if (rawData$offersStats$totalOffersCount > 0)
 
   #  rows <- lapply(rawData$offersStats$offerStats, function(x) return(x))
    for (rows_i in 1:length(dataset)) {
-   result <- rbind(result,c(unlist(dataset[[rows_i]]),date1),stringsAsFactors = F)
+   result <- rbind(result,c(unlist(dataset[[rows_i]])),stringsAsFactors = F)
    }
     }
 
@@ -105,7 +105,7 @@ if (rawData$offersStats$totalOffersCount > 0)
                                               function(x) return(x))),"date")
    colnames(result) <- column_names
    
-   if (DBD == TRUE) {result$date <- date1}
+   if (DBD == TRUE) {result$date <- as.character(date1)}
    packageStartupMessage(appendLF = T)
    packageStartupMessage("Processed ",length(result$clicks)," rows", appendLF = T)
    
