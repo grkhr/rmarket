@@ -105,7 +105,7 @@ if (rawData$offersStats$totalOffersCount > 0)
                                               function(x) return(x))),"date")
    colnames(result) <- column_names
    
-   if (DBD == TRUE) result$date <- date1
+   if (DBD == TRUE) {result$date <- date1}
    packageStartupMessage(appendLF = T)
    packageStartupMessage("Processed ",length(result$clicks)," rows", appendLF = T)
    
