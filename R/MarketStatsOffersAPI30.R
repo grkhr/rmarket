@@ -23,7 +23,6 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", date2 = "today", client
                               token = NULL, feedId = NULL, DBD = FALSE) 
 {
   proc_start <- Sys.time()
-  packageStartupMessage("Processing", appendLF = F)
   if (is.null(client_id) | is.null(token)) {
     stop("Аргументы client_id, metrics и token являются обязательными, заполните их и запустите запрос повторно!")
   }
@@ -33,7 +32,15 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", date2 = "today", client
   } else {
     string_as_factor <- "no change"
   }
+
+  CheckStats <- MarketStatsAPI(date1 = date1, date2 = date2, client_id = client_id, shop_id = shop_id, token = token)
   
+  if (nrow(CheckStats) == 0) 
+    {
+      packageStartupMessage("No data for period", appendLF = T)
+      return (CheckStats)
+  }
+  packageStartupMessage("Processing", appendLF = F)
   result <- data.frame(stringsAsFactors = F)
   date1 <- as.Date(date1)
   date2 <- as.Date(date2)
@@ -51,8 +58,7 @@ for (i in 0:divnumber)
    if (i == divnumber) {divtill <- 0} else {divtill <- 1}
    if (i == 0) {divstart <- 0} else {divstart <- 1}
    date_from1 <- as.Date(date1) + i*29 + divstart
-   if (divremainder == 0) date_till1 <- as.Date(date2) - (divnumber-i)*29
-   else date_till1 <- as.Date(date2) - divremainder*divtill - (divnumber-i-1)*29*divtill
+   if (divremainder == 0) date_till1 <- as.Date(date2) - (divnumber-i)*29 else date_till1 <- as.Date(date2) - divremainder*divtill - (divnumber-i-1)*29*divtill
   ch <- ch + 1
   limit <- 1000
   offset <- 1
@@ -70,7 +76,11 @@ for (i in 0:divnumber)
                     query)
     answer <- GET(query)
     rawData <- content(answer, "parsed", "application/json")
-    
+  
+if (length(rawData$offersStats$offerStats) == 0 && (date2 == Sys.Date()-1 || date2 == Sys.Date()))
+{
+  stop("Market stats doesn't ready to collect. Full stats exactly available after 12:00 for a previous day. Try again later. If the problem still happens, send a message to a technical support.")
+}
 if (rawData$offersStats$totalOffersCount > 0)
 {
     dataset <- rawData$offersStats$offerStats
