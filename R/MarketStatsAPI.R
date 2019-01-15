@@ -25,7 +25,7 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
   
   if (is.null(client_id) | is.null(token)) {
     stop(
-      "Аргументы client_id, metrics и token являются обязательными, заполните их и запустите запрос повторно!"
+      "client_id or token required!"
     )
   }
   if (getOption("stringsAsFactors") == TRUE) {
@@ -38,44 +38,23 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
   result <- data.frame(stringsAsFactors = F)
   
   
-  numdays <- as.integer(difftime(date2, date1))
-  if (numdays == 0)
-    divnumber = 0
-  else
-    divnumber <- (numdays - 1) %/% 179
-  if (numdays %% 179 == 0) {
-    divremainder <- 0
-  } else {
-    divremainder <- (numdays) %% 179
-  }
-  for (i in 0:divnumber)
+  
+  date1 <- as.Date(date1)
+  date2 <- as.Date(date2)
+  
+  dseq <- seq.Date(date1, date2, by = 170)
+  dseq[length(dseq)+1] <- date2 + 1
+  
+  result <- data.frame()
+  
+  for (i in 1:length(dseq - 1))
   {
-    # metrics <- gsub(" ", "", metrics)
-    if (i == divnumber) {
-      divtill <- 0
-    } else {
-      divtill <- 1
-    }
-    if (i == 0) {
-      divstart <- 0
-    } else {
-      divstart <- 1
-    }
-    date_from1 <- as.Date(date1) + i * 179 + divstart
-    if (divremainder == 0)
-      date_till1 <- as.Date(date2) - (divnumber - i) * 179
-    else
-      date_till1 <-
-      as.Date(date2) - divremainder * divtill - (divnumber - i - 1) * 179 * divtill
-    
     limit <- 1000
     offset <- 1
     last_query <- FALSE
     while (last_query == FALSE) {
-      date1 <- as.Date(date1)
-      date2 <- as.Date(date2)
-      date1 <- format(date1, format = "%d-%m-%Y")
-      date2 <- format(date2, format = "%d-%m-%Y")
+      date1 <- format(dseq[i], format = "%d-%m-%Y")
+      date2 <- format(dseq[i+1] - 1, format = "%d-%m-%Y")
       query <- paste0(
         "fromDate=",
         date1,
@@ -99,42 +78,26 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
           query
         )
       answer <- GET(query)
-      rawData <- content(answer, "parsed", "application/json")
-      result <- data.frame()
       
-      if (length(rawData$mainStats) > 0)
-      {
-        column_names <- unlist(lapply(c(names(
-          rawData$mainStats[[1]]
-        )),
-        function(x)
-          return(x)))
-        
-        rows <- lapply(rawData$mainStats, function(x)
-          return(x))
+      rawData <- content(answer, "parsed", "application/json")
+      
+      if (length(rawData$mainStats) > 0) {
+        column_names <- unlist(lapply(c(names(rawData$mainStats[[1]])), function(x) return(x)))
+        rows <- lapply(rawData$mainStats, function(x) return(x))
         for (rows_i in 1:length(rows)) {
           result <- rbind(result, unlist(rows[[rows_i]]))
-          
         }
       }
-      
       packageStartupMessage(".", appendLF = F)
       offset <- offset + limit
-      if (length(rawData$mainStats) * 4 < offset) {
+      if (length(rawData$mainStats) < limit) {
         last_query <- TRUE
       }
-      if (length(rawData$mainStats) > 0)
-      {
-        colnames(result) <- column_names
-      }
-      
-      if (string_as_factor == "change") {
-        options(stringsAsFactors = T)
-      }
       packageStartupMessage(".", appendLF = F)
-      
     }
   }
+  
+  if (nrow(result) > 0) colnames(result) <- column_names
   packageStartupMessage(appendLF = T)
   packageStartupMessage("Processed ",length(result$date)," rows", appendLF = T)
   
