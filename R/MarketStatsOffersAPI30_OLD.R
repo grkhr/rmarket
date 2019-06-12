@@ -24,7 +24,7 @@ MarketStatsOffersAPI30_OLD <- function (date1 = "10daysAgo", date2 = "today", cl
 {
   proc_start <- Sys.time()
   if (is.null(client_id) | is.null(token)) {
-    stop("Аргументы client_id, metrics и token являются обязательными, заполните их и запустите запрос повторно!")
+    stop("Check if you set client_id and token. It's necessary.")
   }
   if (getOption("stringsAsFactors") == TRUE) {
     string_as_factor <- "change"
