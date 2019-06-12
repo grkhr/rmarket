@@ -19,9 +19,12 @@
 #' @examples
 #' MarketStatsOffersAPI30()
 
-MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", date2 = "today", client_id = NULL, shop_id = NULL,
-                              token = NULL, feedId = NULL) 
-{
+MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", 
+                                    date2 = "today", 
+                                    client_id = NULL, 
+                                    shop_id = NULL,
+                                    token = NULL, 
+                                    feedId = NULL) {
   proc_start <- Sys.time()
   if (is.null(client_id) | is.null(token)) {
     stop("Check if you set client_id and token. It's necessary.")
@@ -92,7 +95,7 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", date2 = "today", client
    packageStartupMessage("Processed ", length(result$clicks), " rows", appendLF = T)
    total_work_time <- round(difftime(Sys.time(), proc_start , units ="secs"),0)
    packageStartupMessage(paste0("Total time: ", total_work_time, " sec."))
-  return(result)
-  }
+    return(result)
+}
 
 

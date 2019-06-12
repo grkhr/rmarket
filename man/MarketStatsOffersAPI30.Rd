@@ -5,8 +5,7 @@
 \title{Get stats by offers}
 \usage{
 MarketStatsOffersAPI30(date1 = "10daysAgo", date2 = "today",
-  client_id = NULL, shop_id = NULL, token = NULL, feedId = NULL,
-  DBD = FALSE)
+  client_id = NULL, shop_id = NULL, token = NULL, feedId = NULL)
 }
 \arguments{
 \item{date1}{Start date}
@@ -20,8 +19,6 @@ MarketStatsOffersAPI30(date1 = "10daysAgo", date2 = "today",
 \item{token}{Your API token, see \code{\link{https://tech.yandex.ru/market/partner/doc/dg/concepts/authorization-docpage/}}}
 
 \item{feedId}{You can check it in Pricelabs}
-
-\item{DBD}{Adding a date column, default to FALSE, use it only for 1-day stats}
 }
 \description{
 Function to get stats by offers. Maximum period is 30 days!
