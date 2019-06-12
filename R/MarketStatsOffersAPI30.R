@@ -65,6 +65,10 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo",
       query <- paste0("https://api.partner.market.yandex.ru/v2/campaigns/", shop_id, "/stats/offers.json?", 
                       query)
       answer <- GET(query)
+      if (status_code(answer) >= 400) {
+        packageStartupMessage()
+        stop(content(answer)$error$message)
+      }
       rawData <- content(answer, "parsed", "application/json")
     
       if (length(rawData$offersStats$offerStats) == 0 && (date2 == Sys.Date()-1 || date2 == Sys.Date())) {
