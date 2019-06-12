@@ -20,107 +20,78 @@
 #' MarketStatsOffersAPI30()
 
 MarketStatsOffersAPI30 <- function (date1 = "10daysAgo", date2 = "today", client_id = NULL, shop_id = NULL,
-                              token = NULL, feedId = NULL, DBD = FALSE) 
+                              token = NULL, feedId = NULL) 
 {
   proc_start <- Sys.time()
   if (is.null(client_id) | is.null(token)) {
-    stop("Аргументы client_id, metrics и token являются обязательными, заполните их и запустите запрос повторно!")
+    stop("Check if you set client_id and token. It's necessary.")
   }
-  if (getOption("stringsAsFactors") == TRUE) {
-    string_as_factor <- "change"
-    options(stringsAsFactors = F)
-  } else {
-    string_as_factor <- "no change"
-  }
-
-  CheckStats <- MarketStatsAPI(date1 = date1, date2 = date2, client_id = client_id, shop_id = shop_id, token = token)
+  options(stringsAsFactors = F)
   
-  if (nrow(CheckStats) == 0) 
-    {
-      packageStartupMessage("No data for period", appendLF = T)
+  CheckStats <- suppressMessages(MarketStatsAPI(date1 = date1, date2 = date2, client_id = client_id, shop_id = shop_id, token = token))
+  
+  if (nrow(CheckStats) == 0) {
+      packageStartupMessage("No data for period.", appendLF = T)
       return (CheckStats)
   }
-  packageStartupMessage("Processing", appendLF = F)
-  result <- data.frame(stringsAsFactors = F)
+  
+  result <- data.frame()
   date1 <- as.Date(date1)
   date2 <- as.Date(date2)
   ch <- 0
- 
-  date_from = date1
-  date_till = date2
-  numdays <- as.integer(difftime(date2,date1))
-   if (numdays == 0) divnumber = 0 else  divnumber <- (numdays-1) %/% 29
-   if (numdays %% 29 == 0) {divremainder <- 0} else {divremainder <- (numdays) %% 29}
+  if (abs(difftime(Sys.Date() - 1, date1)) >= 30)
+    stop("These stats are available only for 30 last days. Check the API docs and try another period.")
+  packageStartupMessage("Processing", appendLF = F)
   
+  dates <- as.character(seq.Date(date1, date2, by = "day"))
   
-for (i in 0:divnumber)
-{
-   if (i == divnumber) {divtill <- 0} else {divtill <- 1}
-   if (i == 0) {divstart <- 0} else {divstart <- 1}
-   date_from1 <- as.Date(date1) + i*29 + divstart
-   if (divremainder == 0) date_till1 <- as.Date(date2) - (divnumber-i)*29 else date_till1 <- as.Date(date2) - divremainder*divtill - (divnumber-i-1)*29*divtill
-  ch <- ch + 1
-  limit <- 1000
-  offset <- 1
-  row_pos <- offset
-  last_query <- FALSE
-  while (last_query == FALSE) {
-    date_from1 <- format(date_from1, format="%d-%m-%Y")
-    date_till1 <- format(date_till1, format="%d-%m-%Y")
-    query <- paste0("feedId" = feedId, "&page=", row_pos, "&pageSize=", limit, 
-                    "&fromDate=", date_from1, "&toDate=", 
-                    date_till1, 
-                    "&oauth_token=", token, "&oauth_client_id=", client_id)
-    query <- gsub(":", "%3a", query)
-    query <- paste0("https://api.partner.market.yandex.ru/v2/campaigns/", shop_id, "/stats/offers.json?", 
-                    query)
-    answer <- GET(query)
-    rawData <- content(answer, "parsed", "application/json")
-  
-if (length(rawData$offersStats$offerStats) == 0 && (date2 == Sys.Date()-1 || date2 == Sys.Date()))
-{
-  stop("Market stats doesn't ready to collect. Full stats exactly available after 12:00 for a previous day. Try again later. If the problem still happens, send a message to a technical support.")
-}
-if (rawData$offersStats$totalOffersCount > 0)
-{
-    dataset <- rawData$offersStats$offerStats
-
-
-    if (length(dataset) > 0)
-    {
+  for (i in 1:length(dates)) {
+    ch <- ch + 1
+    limit <- 1000
+    offset <- 1
+    row_pos <- offset
+    last_query <- FALSE
+    while (last_query == FALSE) {
+      date_from1 <- format(as.Date(dates[[i]]), format="%d-%m-%Y")
+      date_till1 <- format(as.Date(dates[[i]]), format="%d-%m-%Y")
+      query <- paste0("feedId" = feedId, "&page=", row_pos, "&pageSize=", limit, 
+                      "&fromDate=", date_from1, "&toDate=", 
+                      date_till1, 
+                      "&oauth_token=", token, "&oauth_client_id=", client_id)
+      query <- gsub(":", "%3a", query)
+      query <- paste0("https://api.partner.market.yandex.ru/v2/campaigns/", shop_id, "/stats/offers.json?", 
+                      query)
+      answer <- GET(query)
+      rawData <- content(answer, "parsed", "application/json")
     
-
-  #  rows <- lapply(rawData$offersStats$offerStats, function(x) return(x))
-   for (rows_i in 1:length(dataset)) {
-   result <- rbind(result,c(unlist(dataset[[rows_i]])),stringsAsFactors = F)
-   }
+      if (length(rawData$offersStats$offerStats) == 0 && (date2 == Sys.Date()-1 || date2 == Sys.Date())) {
+        stop("Market stats doesn't ready to collect. Full stats exactly available after 12:00 for a previous day. Try again later. If the problem still happens, send a message to a technical support.")
+      }
+        
+      if (rawData$offersStats$totalOffersCount > 0) {
+        dataset <- rawData$offersStats$offerStats
+        if (length(dataset) > 0) {
+        #  rows <- lapply(rawData$offersStats$offerStats, function(x) return(x))
+            for (rows_i in 1:length(dataset)) {
+              result <- rbind(result,c(unlist(dataset[[rows_i]]),dates[[i]]))
+            }
+      }
+  
+      if (rawData$offersStats$totalOffersCount <= row_pos*limit) {
+        last_query <- TRUE
+      }
+      row_pos = row_pos + 1
+      } else last_query <- TRUE
+        packageStartupMessage(".", appendLF = F)
     }
-
-    
-     if (rawData$offersStats$totalOffersCount <= row_pos*limit) {
-      last_query <- TRUE
-    }
-    
-    row_pos = row_pos + 1
-
-  
-  } else last_query <- TRUE
-    packageStartupMessage(".", appendLF = F)
-    
-}
-}
-
-  
+  }
    column_names <- c(unlist(lapply(c(names(dataset[[1]])),
                                               function(x) return(x))))
-   colnames(result) <- column_names
-   
-   if (DBD == TRUE) {result$date <- date1}
+   colnames(result) <- c(column_names, "date")
    packageStartupMessage(appendLF = T)
-   packageStartupMessage("Processed ",length(result$clicks)," rows", appendLF = T)
-   
+   packageStartupMessage("Processed ", length(result$clicks), " rows", appendLF = T)
    total_work_time <- round(difftime(Sys.time(), proc_start , units ="secs"),0)
-   packageStartupMessage(paste0("Total time: ",total_work_time, " sec."))
+   packageStartupMessage(paste0("Total time: ", total_work_time, " sec."))
   return(result)
   }
 
