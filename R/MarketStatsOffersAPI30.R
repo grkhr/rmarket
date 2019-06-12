@@ -67,7 +67,11 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo",
       answer <- GET(query)
       if (status_code(answer) >= 400) {
         packageStartupMessage()
-        stop(content(answer)$error$message)
+        packageStartupMessage(content(answer)$error$message)
+        if (status_code(answer) == 420)
+          packageStartupMessage('Limit will expire at ', answer$headers$`x-ratelimit-resource-until`)
+        packageStartupMessage()
+        stop()
       }
       rawData <- content(answer, "parsed", "application/json")
     
