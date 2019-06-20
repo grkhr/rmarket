@@ -108,7 +108,7 @@ MarketStatsOffersAPI30 <- function (date1 = "10daysAgo",
    s2 <- sum(as.numeric(result$clicks))
    s3 <- sum(as.numeric(CheckStats$spending))
    s4 <- sum(as.numeric(result$spending))
-   if (s1 != s2 || s3 != s4)
+   if (s1 != s2 || round(s3) != round(s4))
      stop("Something went wrong, data isn't correct. Check the data in Yandex.Market and PriceLabs interfaces. If it isn't equal,
           write to Yandex.Market technical support and if they'll solve the problem, then try again.")
    return(result)
