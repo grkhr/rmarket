@@ -71,6 +71,12 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
       answer <- GET(query)
       rawData <- content(answer, "parsed", "application/json")
       
+      if (status_code(answer) != 200) {
+        packageStartupMessage("Oops... Something went wrong.")
+        packageStartupMessage("Status code: ", status_code(answer))
+        stop(paste0("Error: ", rawData$error$message))
+      }
+      
       if (length(rawData$mainStats)) {
         column_names <- names(rawData$mainStats[[1]])
         rows <- lapply(rawData$mainStats, function(x) return(x))
