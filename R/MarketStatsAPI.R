@@ -74,7 +74,8 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
       if (status_code(answer) != 200) {
         packageStartupMessage("Oops... Something went wrong.")
         packageStartupMessage("Status code: ", status_code(answer))
-        stop(paste0("Error: ", rawData$error$message))
+        packageStartupMessage("Error: ", rawData$error$message)
+        stop()
       }
       
       if (length(rawData$mainStats)) {
