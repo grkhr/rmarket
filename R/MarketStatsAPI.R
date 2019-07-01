@@ -22,39 +22,30 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
 {
   proc_start <- Sys.time()
   packageStartupMessage("Processing", appendLF = F)
+  options(stringsAsFactors = F)
   
   if (is.null(client_id) | is.null(token)) {
     stop(
       "client_id or token required!"
     )
   }
-  if (getOption("stringsAsFactors") == TRUE) {
-    string_as_factor <- "change"
-    options(stringsAsFactors = F)
-  }
-  else {
-    string_as_factor <- "no change"
-  }
-  result <- data.frame(stringsAsFactors = F)
-  
-  
   
   date1 <- as.Date(date1)
   date2 <- as.Date(date2)
   
-  dseq <- seq.Date(date1, date2, by = 170)
-  dseq[length(dseq)+1] <- date2 + 1
+  dates <- date_ranges(date1, date2, 170)
+  dates[] <- lapply(dates, as.Date)
   
   result <- data.frame()
   
-  for (i in 1:length(dseq - 1))
+  for (i in 1:nrow(dates))
   {
     limit <- 1000
     offset <- 1
     last_query <- FALSE
     while (last_query == FALSE) {
-      date1 <- format(dseq[i], format = "%d-%m-%Y")
-      date2 <- format(dseq[i+1] - 1, format = "%d-%m-%Y")
+      date1 <- format(dates[i,1], format = "%d-%m-%Y")
+      date2 <- format(dates[i,2], format = "%d-%m-%Y")
       query <- paste0(
         "fromDate=",
         date1,
@@ -78,17 +69,17 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
           query
         )
       answer <- GET(query)
-      
       rawData <- content(answer, "parsed", "application/json")
       
-      if (length(rawData$mainStats) > 0) {
-        column_names <- unlist(lapply(c(names(rawData$mainStats[[1]])), function(x) return(x)))
+      if (length(rawData$mainStats)) {
+        column_names <- names(rawData$mainStats[[1]])
         rows <- lapply(rawData$mainStats, function(x) return(x))
-        for (rows_i in 1:length(rows)) {
-          result <- rbind(result, unlist(rows[[rows_i]]))
-        }
+        res <- do.call(rbind.data.frame, rows)
+        result <- rbind(result, res)
+        # for (rows_i in 1:length(rows)) {
+        #   result <- rbind(result, unlist(rows[[rows_i]]))
+        # }
       }
-      packageStartupMessage(".", appendLF = F)
       offset <- offset + limit
       if (length(rawData$mainStats) < limit) {
         last_query <- TRUE
@@ -97,12 +88,11 @@ MarketStatsAPI <- function (date1 = "10daysAgo", date2 = "today", client_id = NU
     }
   }
   
-  if (nrow(result) > 0) colnames(result) <- column_names
+  #if (nrow(result) > 0) colnames(result) <- column_names
   packageStartupMessage(appendLF = T)
-  packageStartupMessage("Processed ",length(result$date)," rows", appendLF = T)
-  
-  total_work_time <- round(difftime(Sys.time(), proc_start , units ="secs"),0)
-  packageStartupMessage(paste0("Total time: ",total_work_time, " sec."))
+  packageStartupMessage("Processed ",length(result$date), " rows", appendLF = T)
+  total_work_time <- round(difftime(Sys.time(), proc_start , units ="secs"), 0)
+  packageStartupMessage(paste0("Total time: ", total_work_time, " sec."))
   return(result)
 }
 
